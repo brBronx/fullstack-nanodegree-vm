@@ -33,13 +33,12 @@ def countPlayers():
     """Returns the number of players currently registered."""
     DB = connect()
     c = DB.cursor()
-    num = c.execute("select count(*) from players")
-    print "before if statement, num is: " + str(num)
+    c.execute("select count(*) from players")
+    num = int(c.fetchone()[0])
     if num == None:
         num = 0
     else:
         num
-    print "after if statement, num is: " + str(num)
     DB.close
     return num
 
@@ -75,15 +74,14 @@ def playerStandings():
     """
     DB = connect()
     c = DB.cursor()
-    recs = c.execute("select id, name, wins, matches \
-        from player p, matches m \
-        where p.id = m.id \
+    c.execute("select p.id, name, wins, matches \
+        from players p left outer join matches m on p.id = m.id \
         order by wins")
     standings = []
-    for row in recs:
-        tup = (row[0], row[1], row[2], row[4])
+    for row in c:
+        tup = (row[0], row[1], row[2], row[3])
         standings.append(tup)
-        tup = ()  
+        tup = ()
     DB.close()  
     return standings   
 
@@ -97,8 +95,8 @@ def reportMatch(winner, loser):
     """
     DB = connect()
     c = DB.cursor()
-    c.execute("update players set wins = wins + 1, matches = matches + 1 where id = winner")
-    c.execute("update players set losses = losses + 1, matches = matches + 1 where id = loser")
+    c.execute("update players set wins = wins + 1, matches = matches + 1 where id = '%s'", (winner,))
+    c.execute("update players set losses = losses + 1, matches = matches + 1 where id = '%s'", (loser,))
     c.execute("insert into matches (winner, loser) values (%s, %s)", (winner, loser))
     DB.commit()
     DB.close()    
@@ -120,18 +118,16 @@ def swissPairings():
     """
     DB = connect()
     c = DB.cursor()
-    player_wins = c.execute("select id, name from player order by wins")
+    c.execute("select id, name from players order by wins")
     matches = []
-    while player_wins is not None:
-        match = []
-        row = player_wins.fetchone()
+    for row in c:
+        match = ()
         id1 = row[0]
         name1 = row[1]
-        row = player_wins.fetchone()
-        id2 = row[3]
-        name2 = row[3]
-        
-        match = [id1, name1, id2, name2]
+        row = c.fetchone()
+        id2 = row[0]
+        name2 = row[1]      
+        match = (id1, name1, id2, name2)
         matches.append(match)
     
     DB.close()  
