@@ -116,6 +116,11 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+
+#   Rows are selected in pairs.  THe first row is delivered by the 'for' loop.  THe second row of
+#   the pair comes from the 'c.fetchone' statement.  Each pair of rows is inserted into the tuple 
+#   'match'.  The 'match' tuple is then appended to the 'matches' list which is returned.
+#   The 'matches' list contains a tuple for each pair of players for the next round of the match.    
     DB = connect()
     c = DB.cursor()
     c.execute("select id, name from players order by wins")
